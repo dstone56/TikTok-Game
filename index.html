@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Boss Battle Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .character {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+    }
+
+    .boss {
+      width: 60px;
+      height: 60px;
+      margin-right: 20px;
+      position: absolute;
+    }
+
+    .boss-hp {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .character-hp {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #spawnButton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    #spawnBossButton {
+      position: absolute;
+      top: 60px;
+      left: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="spawnButton" onclick="spawnCharacter()">Spawn Character</button>
+  <button id="spawnBossButton" onclick="spawnBoss()">Spawn Boss</button>
+
+  <div id="bossHealth" class="boss-hp">HP: 1000</div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
