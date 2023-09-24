@@ -105,6 +105,23 @@ function spawnBoss() {
 
 let bossMoving = false;
 
+let lastSpawnedType = null;
+
+function startSpawnCheck() {
+  setInterval(() => {
+    if (bosses.size === 0 && characters.size === 0) {
+    } else if (bosses.size === 0 ) {
+      // If no bosses but last spawn wasn't a boss, spawn a boss
+      spawnBoss();
+      lastSpawnedType = 'boss';
+    } else if (characters.size === 0 ) {
+      // If no characters but last spawn wasn't a character, spawn a character
+      spawnCharacter();
+      lastSpawnedType = 'character';
+    }
+  }, 10000); // Check every 10 seconds
+}
+
 function moveBossTowardsCharacter() {
   if (characters.size === 0 || bosses.size === 0) {
     bossMoving = false;
@@ -237,7 +254,6 @@ function bossAttackCharacter(characterData) {
 }
 
 function resetGame() {
-  // bossHealth = 1000; // Remove this, bossHealth is constant and can't be reassigned
   document.getElementById('bossHP').innerText = `HP: ${bossHealth}`;
   characterCount = 0;
 
@@ -246,3 +262,9 @@ function resetGame() {
   });
   characters.clear();
 }
+
+window.addEventListener('load', () => {
+  spawnBoss();
+  startSpawnCheck(); // Start the spawn check on page load
+});
+
