@@ -25,6 +25,20 @@
       position: absolute;
     }
 
+    .superboss {
+      width: 60px;
+      height: 60px;
+      margin-right: 20px;
+      position: absolute;
+    }
+
+.superboss-hp {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
     .boss-hp {
       position: absolute;
       bottom: -20px;
@@ -43,6 +57,8 @@
 
 <body>
   <div id="bossHealth" class="boss-hp">HP: 1000</div>
+  <div id="superBossHealth" class="superboss-hp">HP: 1500</div>
+
 
   <!-- Add the audio element -->
   <audio id="backgroundAudio" loop>
