@@ -38,26 +38,22 @@
       left: 50%;
       transform: translateX(-50%);
     }
-
-    #spawnButton {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-    }
-
-    #spawnBossButton {
-      position: absolute;
-      top: 60px;
-      left: 20px;
-    }
   </style>
 </head>
 
 <body>
-  <button id="spawnButton" onclick="spawnCharacter()">Spawn Character</button>
-  <button id="spawnBossButton" onclick="spawnBoss()">Spawn Boss</button>
-
   <div id="bossHealth" class="boss-hp">HP: 1000</div>
+
+  <!-- Add the audio element -->
+  <audio id="backgroundAudio" loop>
+    <source src="Wii.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
+
+  <audio id="fightingAudio">
+    <source src="OOO.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
 
   <script src="script.js"></script>
 </body>

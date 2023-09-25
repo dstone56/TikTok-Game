@@ -9,8 +9,22 @@ let bossCount = 0;
 const bosses = new Set();
 const characters = new Set();
 
+const backgroundAudio = new Audio('Wii.mp3'); // Create an audio element
+
+function startAudio() {
+  if (!backgroundAudio.paused) {
+    backgroundAudio.pause();
+    backgroundAudio.currentTime = 0;
+  }
+  backgroundAudio.play().catch(error => console.error('Audio play error:', error));
+}
+
 function spawnCharacter() {
   characterCount++;
+
+  // Play YAHOO.mp3 audio
+  const yahooAudio = new Audio('YAHOO.mov');
+  yahooAudio.play().catch(error => console.error('Yahoo audio play error:', error));
 
   const character = document.createElement('div');
   character.classList.add('character');
@@ -55,10 +69,14 @@ function spawnCharacter() {
   }
 }
 
+
 let characterMoving = false;
 
 function spawnBoss() {
   bossCount++;
+
+  const spawnAudio = new Audio('MrBeastSpawn.mov');
+  spawnAudio.play().catch(error => console.error('spawn audio play error:', error));
 
   const newBoss = document.createElement('div');
   newBoss.classList.add('boss');
@@ -105,16 +123,27 @@ function spawnBoss() {
 
 let bossMoving = false;
 
+function handleKeyboardInput(event) {
+  // Listen for 'C' to spawn character and 'B' to spawn boss
+  if (event.key === 'c' || event.key === 'C') {
+    spawnCharacter();
+  } else if (event.key === 'b' || event.key === 'B') {
+    spawnBoss();
+  } else if (event.key === 'a' || event.key === 'A') {
+    startAudio(); // Start the audio when 'A' key is pressed
+  }
+}
+
 let lastSpawnedType = null;
 
 function startSpawnCheck() {
   setInterval(() => {
     if (bosses.size === 0 && characters.size === 0) {
-    } else if (bosses.size === 0 ) {
+    } else if (bosses.size === 0) {
       // If no bosses but last spawn wasn't a boss, spawn a boss
       spawnBoss();
       lastSpawnedType = 'boss';
-    } else if (characters.size === 0 ) {
+    } else if (characters.size === 0) {
       // If no characters but last spawn wasn't a character, spawn a character
       spawnCharacter();
       lastSpawnedType = 'character';
@@ -235,11 +264,13 @@ function characterAttackBoss(bossData) {
   bossData.hpDisplay.innerText = `HP: ${bossData.hp}`; // Update the boss's HP display
 
   if (bossData.hp <= 0) {
+    const dieAudio = new Audio('MrBeastDie.mov');
+    dieAudio.play().catch(error => console.error('die audio play error:', error));
+
     bossData.element.remove();
     bosses.delete(bossData);
   }
 }
-
 
 function bossAttackCharacter(characterData) {
   let bossDamage = bossAttack;
@@ -248,6 +279,10 @@ function bossAttackCharacter(characterData) {
   characterData.hpDisplay.innerText = `HP: ${characterData.hp}`;
 
   if (characterData.hp <= 0) {
+    // Play WAAA.mov audio when character dies
+    const waaaAudio = new Audio('WAAA.mov');
+    waaaAudio.play().catch(error => console.error('WAAA audio play error:', error));
+
     characterData.element.remove();
     characters.delete(characterData);
   }
@@ -262,6 +297,8 @@ function resetGame() {
   });
   characters.clear();
 }
+
+window.addEventListener('keydown', handleKeyboardInput);
 
 window.addEventListener('load', () => {
   spawnBoss();
