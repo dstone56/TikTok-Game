@@ -18,11 +18,16 @@ let godCount = 0;
 const godAttack = 10;
 const godHealth = 5000;
 
+let miniCharacterCount = 0;
+const miniCharcterAttack = 1;
+const miniCharacterHP= 50;
+
 const bosses = new Set();
 const characters = new Set();
 const superBosses = new Set();
 const superCharacters = new Set();
 const gods = new Set();
+const miniCharacters = new Set();
 
 const backgroundAudio = new Audio('Audio/Wii.mp3'); // Create an audio element
 backgroundAudio.volume = 0.4;
@@ -333,9 +338,74 @@ function spawnGod() {
     superCharactersMoving = true;
     requestAnimationFrame(moveCharacters);
   }
+
+  if (!miniCharacterMoving) {
+    miniCharacterMoving = true;
+    requestAnimationFrame(moveCharacters);
+  }
 }
 
 let godsMoving = false;
+
+function spawnMiniCharacter() {
+  miniCharacterCount++;
+  const yahooAudio = new Audio('Audio/Peter.mov');
+  yahooAudio.play().catch(error => console.error('Yahoo audio play error:', error));
+
+  const miniCharacter = document.createElement('div');
+  miniCharacter.classList.add('minicharacter');
+
+  const randomTop = Math.random() * (window.innerHeight - 60);
+  const randomLeft = Math.random() * (window.innerWidth - 60);
+
+  miniCharacter.style.top = `${randomTop}px`;
+  miniCharacter.style.left = `${randomLeft}px`;
+
+  const miniCharacterImage = document.createElement('img');
+  miniCharacterImage.src = 'Images/Peter_Griffin.png';
+  miniCharacterImage.alt = `Character ${miniCharacterCount}`;
+  miniCharacterImage.style.width = '100%';
+  miniCharacterImage.style.height = '100%';
+
+  const miniCharacterHPDisplay = document.createElement('div');
+  miniCharacterHPDisplay.classList.add('minicharacter-hp');
+  miniCharacterHPDisplay.innerText = `HP: ${miniCharacterHP}`;
+
+  miniCharacter.appendChild(miniCharacterImage);
+  miniCharacter.appendChild(miniCharacterHPDisplay);
+  document.body.appendChild(miniCharacter);
+
+  const miniCharacterData = {
+    element: miniCharacter,
+    hpDisplay: miniCharacterHPDisplay,
+    hp: miniCharacterHP,
+    isAttacking: false
+  };
+
+  miniCharacters.add(miniCharacterData);
+
+  if (!charactersMoving) {
+    charactersMoving = true;
+    requestAnimationFrame(moveCharacters);
+  }
+
+  if (!bossMoving) {
+    bossMoving = true;
+    requestAnimationFrame(moveBoss);
+  }
+
+  if (!godsMoving) {
+    godsMoving = true;
+    requestAnimationFrame(moveGods);
+  }
+
+  if (!miniCharacterMoving) {
+    miniCharacterMoving = true;
+    requestAnimationFrame(moveCharacters);
+  }
+}
+
+let miniCharacterMoving = false;
 
 function handleKeyboardInput(event) {
   // Listen for 'C' to spawn character and 'B' to spawn boss
@@ -351,6 +421,8 @@ function handleKeyboardInput(event) {
     spawnSuperCharacter(); // Start the audio when 'A' key is pressed
   } else if (event.key === 'g' || event.key === 'G') {
     spawnGod(); // Start the audio when 'A' key is pressed
+  } else if (event.key === 'm' || event.key === 'm') {
+    spawnMiniCharacter(); 
   }
 }
 
@@ -361,15 +433,15 @@ function startSpawnCheck() {
     if (bosses.size === 0 && superBosses.size === 0) {
       spawnBoss();
       lastSpawnedType = 'boss';
-    } else if (characters.size === 0 && superCharacters.size === 0) {
-      spawnCharacter();
-      lastSpawnedType = 'character';
+    } else if (characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0) {
+      spawnMiniCharacter();
+      lastSpawnedType = 'minicharacter';
     }
   }, 5000); // Check every 5 seconds
 }
 
 function moveBoss() {
-  if ((characters.size === 0 && superCharacters.size === 0 && gods.size === 0)) {
+  if ((characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0 && gods.size === 0)) {
     bossMoving = false;
     superBossMoving = false;
     return;
@@ -406,6 +478,18 @@ function moveBoss() {
       if (distance < closestDistance) {
         closestDistance = distance;
         closestCharacter = superCharacterData;
+      }
+    }
+
+    for (const miniCharacterData of miniCharacters) {
+      const miniCharacterRect = miniCharacterData.element.getBoundingClientRect();
+      const deltaX = miniCharacterRect.x - bossRect.x;
+      const deltaY = miniCharacterRect.y - bossRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestCharacter = miniCharacterData;
       }
     }
 
@@ -493,6 +577,18 @@ function moveBoss() {
       }
     }
 
+    for (const miniCharacterData of miniCharacters) {
+      const miniCharacterRect = miniCharacterData.element.getBoundingClientRect();
+      const deltaX = miniCharacterRect.x - superBossRect.x;
+      const deltaY = miniCharacterRect.y - superBossRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestCharacter = miniCharacterData;
+      }
+    }
+
     for (const godData of gods) {
       const godRect = godData.element.getBoundingClientRect();
       const deltaX = godRect.x - superBossRect.x;
@@ -545,7 +641,7 @@ function moveBoss() {
       }
     }
   }
-  if (characters.size === 0 && superCharacters.size === 0 && gods.size === 0) {
+  if (characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0 && gods.size === 0) {
     bossMoving = false;
     superBossMoving = false;
   }
@@ -560,11 +656,13 @@ function moveCharacters() {
   if (bosses.size === 0 && superBosses.size === 0 && gods.size === 0) {
     charactersMoving = false;
     superCharactersMoving = false;
+    miniCharacterMoving = false;
     return;
   }
 
   charactersMoving = true;
   superCharactersMoving = true;
+  miniCharacterMoving = true;
 
   for (const characterData of characters) {
     const characterRect = characterData.element.getBoundingClientRect();
@@ -772,9 +870,113 @@ function moveCharacters() {
     }
   }
 
+  for (const miniCharacterData of miniCharacters) {
+    const miniCharacterRect = miniCharacterData.element.getBoundingClientRect();
+    let closestBoss = null;
+    let closestGod = null;
+    let closestDistance = Infinity;
+
+    for (const bossData of bosses) {
+      const bossRect = bossData.element.getBoundingClientRect();
+      const deltaX = bossRect.x - miniCharacterRect.x;
+      const deltaY = bossRect.y - miniCharacterRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestBoss = bossData;
+      }
+    }
+
+    for (const superBossData of superBosses) {
+      const superBossRect = superBossData.element.getBoundingClientRect();
+      const deltaX = superBossRect.x - miniCharacterRect.x;
+      const deltaY = superBossRect.y - miniCharacterRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestBoss = superBossData;
+      }
+    }
+
+    for (const godData of gods) {
+      const godRect = godData.element.getBoundingClientRect();
+      const deltaX = godRect.x - miniCharacterRect.x;
+      const deltaY = godRect.y - miniCharacterRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestGod = godData;
+      }
+    }
+
+    if (closestBoss) {
+      const bossRect = closestBoss.element.getBoundingClientRect();
+      const deltaX = bossRect.x - miniCharacterRect.x;
+      const deltaY = bossRect.y - miniCharacterRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      const normalizedDeltaX = deltaX / distance;
+      const normalizedDeltaY = deltaY / distance;
+
+      const speed = 1; // Adjust this speed value to control character movement speed
+      const newLeft = miniCharacterRect.x + normalizedDeltaX * speed;
+      const newTop = miniCharacterRect.y + normalizedDeltaY * speed;
+
+      // Check if the new position is within the screen boundaries
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      if (newLeft > 0 && newLeft < screenWidth - 60) {
+        miniCharacterData.element.style.left = `${newLeft}px`;
+      }
+
+      if (newTop > 0 && newTop < screenHeight - 60) {
+        miniCharacterData.element.style.top = `${newTop}px`;
+      }
+
+      if (distance <= 50) {
+        charactersAttack(closestBoss);
+      }
+    }
+
+    if (closestGod) {
+      const godRect = closestGod.element.getBoundingClientRect();
+      const deltaX = godRect.x - miniCharacterRect.x;
+      const deltaY = godRect.y - miniCharacterRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      const normalizedDeltaX = deltaX / distance;
+      const normalizedDeltaY = deltaY / distance;
+
+      const speed = 1; // Adjust this speed value to control character movement speed
+      const newLeft = miniCharacterRect.x + normalizedDeltaX * speed;
+      const newTop = miniCharacterRect.y + normalizedDeltaY * speed;
+
+      // Check if the new position is within the screen boundaries
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      if (newLeft > 0 && newLeft < screenWidth - 60) {
+        miniCharacterData.element.style.left = `${newLeft}px`;
+      }
+
+      if (newTop > 0 && newTop < screenHeight - 60) {
+        miniCharacterData.element.style.top = `${newTop}px`;
+      }
+
+      if (distance <= 50) {
+        charactersAttackGod(closestGod);
+      }
+    }
+  }
+
   if (bosses.size === 0 && superBosses.size === 0 && gods.size === 0) {
     charactersMoving = false; // Stop character movement when both bosses and super bosses are defeated
     superCharactersMoving = false;
+    miniCharacterMoving = false;
   }
 
   if (charactersMoving) {
@@ -783,7 +985,7 @@ function moveCharacters() {
 }
 
 function moveGods() {
-  if (bosses.size === 0 && superBosses.size === 0 && characters.size === 0 && superCharacters.size === 0) {
+  if (bosses.size === 0 && superBosses.size === 0 && characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0) {
     godsMoving = false;
     return;
   }
@@ -810,6 +1012,18 @@ function moveGods() {
     }
 
     for (const entityData of superCharacters) {
+      const entityRect = entityData.element.getBoundingClientRect();
+      const deltaX = entityRect.x - godRect.x;
+      const deltaY = entityRect.y - godRect.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestEntity = entityData;
+      }
+    }
+
+    for (const entityData of miniCharacters) {
       const entityRect = entityData.element.getBoundingClientRect();
       const deltaX = entityRect.x - godRect.x;
       const deltaY = entityRect.y - godRect.y;
@@ -876,47 +1090,12 @@ function moveGods() {
     }
   }
 
-  if (bosses.size === 0 && superBosses.size === 0 && characters.size === 0 && superCharacters.size === 0) {
+  if (bosses.size === 0 && superBosses.size === 0 && characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0) {
     godsMoving = false;
   }
 
   if (godsMoving) {
     requestAnimationFrame(moveGods);
-  }
-}
-
-function charactersAttack(bossData) {
-  let characterDamage = characterAttack;
-  bossData.hp -= characterDamage;
-
-  bossData.hpDisplay.innerText = `HP: ${bossData.hp}`; // Update the boss's HP display
-
-  if (bossData.hp <= 0) {
-    let dieAudio;
-
-    // Play different audio based on the type of boss
-    if (superBosses.has(bossData)) {
-      // Play a different audio for super bosses
-      dieAudio = new Audio('');
-    } else {
-      // Default audio for regular bosses
-      dieAudio = new Audio('Audio/MrBeastDie.mov');
-    }
-
-    dieAudio.play().catch(error => console.error('die audio play error:', error));
-
-    bossData.element.remove();
-
-    if (bosses.has(bossData)) {
-      bosses.delete(bossData);
-    } else if (superBosses.has(bossData)) {
-      superBosses.delete(bossData);
-    }
-
-    // Check if both regular bosses and super bosses are defeated
-    if (bosses.size === 0 && superBosses.size === 0 && gods.size === 0) {
-      charactersMoving = false;
-    }
   }
 }
 
@@ -965,10 +1144,11 @@ function bossesAttack(characterData) {
     let deathAudio;
 
     // Play different audio based on the type of character
-    if (superCharacters.has(characterData)) {
+    if (superCharacters.has(characterData) || miniCharacters.has(characterData)) {
       // Play a different audio for super characters
       deathAudio = new Audio('');
-    } else {
+    } 
+    else {
       // Default audio for regular characters
       deathAudio = new Audio('Audio/WAAA.mov');
       deathAudio.volume = 0.7;
@@ -982,9 +1162,11 @@ function bossesAttack(characterData) {
       characters.delete(characterData);
     } else if (superCharacters.has(characterData)) {
       superCharacters.delete(characterData);
+    } else if (miniCharacters.has(characterData)) {
+      miniCharacters.delete(characterData);
     }
 
-    if (characters.size === 0 && superCharacters.size === 0 && gods.size === 0) {
+    if (characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0 && gods.size === 0) {
       bossMoving = false;
     }
   }
@@ -1003,7 +1185,7 @@ function bossesAttackGod(godData) {
     gods.delete(godData);
 
 
-    if (characters.size === 0 && superCharacters.size === 0 && gods.size === 0) {
+    if (characters.size === 0 && superCharacters.size === 0 && miniCharacters.size === 0 && gods.size === 0) {
       bossMoving = false;
     }
   }
@@ -1042,6 +1224,8 @@ function godsAttack(entityData) {
       deathAudio.play().catch(error => console.error('Audio play error:', error));
     } else if (superCharacters.has(entityData)) {
       superCharacters.delete(entityData);
+    } else if (miniCharacters.has(entityData)) {
+      miniCharacters.delete(entityData);
     } else if (bosses.has(entityData)) {
       bosses.delete(entityData);
       dieAudio = new Audio('Audio/MrBeastDie.mov');
@@ -1050,7 +1234,7 @@ function godsAttack(entityData) {
       superBosses.delete(entityData);
     }
 
-    if (characters.size === 0 && superCharacters.size === 0 && bosses.size === 0 && superBosses.size === 0) {
+    if (characters.size === 0 && superCharacters.size === 0 && bosses.size === 0 && superBosses.size === 0 && miniCharacters.size === 0) {
       godsMoving = false;
     }
   }
